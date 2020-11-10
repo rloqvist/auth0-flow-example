@@ -1,25 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {useState, useEffect} from "react";
+import Auth from "@klira/auth0-flow";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const handleAuth = async () => {
+  // prepare the auth-object with config
+  const authMngr = new Auth({
+    domain: process.env.REACT_APP_AUTH0_DOMAIN,
+    audience: process.env.REACT_APP_AUTH0_AUDIENCE,
+    clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
+  });
+
+  // perform the login
+  await authMngr.getAuthManager().authorizeIfNotLoggedIn();
+
+  // extract the payload
+  return authMngr.authMgr.getToken()
 }
 
-export default App;
+export const App = () => {
+  const [auth, setAuth] = useState();
+
+  useEffect(() => {
+    handleAuth().then(setAuth)
+  }, []);
+
+  return auth ? (
+    <>Username: {auth?.idTokenPayload?.sub}</>
+  ) : null;
+};
